@@ -1,0 +1,8 @@
+A(Chuck,Chucky)
+6
+C(x)&B(x)=>A(x,Chucky)
+B(x)&D(x)&Chuck(x)=>A(x,Chucky)
+B(Chuck)
+C(Chuck)
+D(test)
+Chuck(Chuck)

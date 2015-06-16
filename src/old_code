@@ -1,0 +1,185 @@
+		
+	void addImplication(Implication implications, String sentence)
+	{
+		int indexOfImpliesOperator = sentence.indexOf("=");
+		String  implicationsPredicates = sentence.substring(0,indexOfImpliesOperator);
+		String conclusion = sentence.substring(indexOfImpliesOperator+2);	
+		
+		if(sentence.contains("&"))
+		{
+			String predicates[] = sentence.split("&");	
+			for(int i=0;i<predicates.length;i++)
+			{
+				Predicate tempPredicate = new Predicate(sentence);
+				
+			}
+		}
+		
+		//if there is just one predicate in the implication
+		else
+		{
+			this.toCheck.add(0,unifyPredicate(implicationsPredicates));
+				
+		}
+		
+	}
+	
+	void addFact(Fact fact, String sentence)
+	{
+		
+	}
+	
+	//Backward chaining to check if the asked query can be proved from the clauses given
+	boolean backwardChaining()
+	{
+		this.toCheck.add(this.askedQuery.completeQuery);
+		while(!toCheck.isEmpty())
+		{
+			String predicate = toCheck.remove(0);
+			boolean isAFact = checkIfPredicateIsAFact(predicate);
+			
+			//if the predicate is a fact then no need to continue return true
+			if(true == isAFact)
+			{
+				continue;
+			}
+			
+			//probably present in one of the implications
+			else
+			{
+				for(int i=0;i<this.implications.size();i++)
+				{
+					matchConclusionOfImplications(this.implications.get(i),predicate);
+				}
+				if(this.toCheck.size() == 0)
+					return false;
+			}
+		}
+		return true;
+	}
+	
+	//match if the predicate is present in one of the conclusions and if present insert all the predicates of the conclusion in the toCheckArray
+	void matchConclusionOfImplications(String implication, String predicate)
+	{
+		int indexOfImpliesOperator = implication.indexOf("=");
+		String  implicationsPredicates = implication.substring(0,indexOfImpliesOperator);
+		String conclusion = implication.substring(indexOfImpliesOperator+2);
+		
+		//TODO Unify the conclusion
+		predicate = unifyPredicate(predicate);
+		if(this.matchPredicates(conclusion, predicate))
+		{
+			//if there are more than one predicates in the implication
+			if(implicationsPredicates.contains("&"))
+			{
+				String predicates[] = implicationsPredicates.split("&");	
+				for(int i=0;i<predicates.length;i++)
+				{
+					this.toCheck.add(0,unifyPredicate(predicates[i]));
+				}
+			}
+			
+			//if there is just one predicate in the implication
+			else
+			{
+				this.toCheck.add(0,unifyPredicate(implicationsPredicates));
+					
+			}
+	
+		}
+	}
+	
+	//Unifying a particular predicate
+	String unifyPredicate(String predicate)
+	{
+		boolean commaPresent = predicate.contains(",");
+		
+		//if the predicate contains two arguments
+		if(commaPresent)
+		{
+			predicate = unifyVariableWithTwoArguments(predicate);
+		}
+		else
+		{
+			predicate = unifyVariableWithOneArgument(predicate);
+		}	
+		return predicate;
+	}
+	
+	//function to check if the predicate is present in the 'facts' arraylist
+	boolean checkIfPredicateIsAFact(String predicate)
+	{
+		boolean contains = false;
+		predicate = this.unifyPredicate(predicate);
+		for(int i=0;i<this.facts.size();i++)
+		{
+			String tempFact = this.facts.get(i);
+			contains = matchPredicates(tempFact,predicate);
+			if(true == contains)
+				return contains;			
+		}
+		return contains;
+	}
+	
+	//checks if a single fact matches the predicate
+	//this requires  unification
+	boolean matchPredicates(String fact, String predicate)
+	{
+		boolean matches = false;
+		boolean commaPresent = fact.contains(",");
+		
+		//if the predicate contains two arguments
+		if(commaPresent)
+		{
+			fact = unifyVariableWithTwoArguments(fact);
+		}
+		else
+		{
+			fact = unifyVariableWithOneArgument(fact);
+		}
+		
+		if(fact.equals(predicate))
+			matches = true;
+		else
+			matches = false;
+	
+		return matches;
+	}
+	
+	//unifying the fact which has 2 arguments - replacing the x
+	String unifyVariableWithTwoArguments(String fact)
+	{
+		int indexOfx = fact.indexOf('x');
+		int indexOfComma = fact.indexOf(',');
+		StringBuilder tempFact = new StringBuilder(fact);
+		
+		if(indexOfx>0)
+		{
+			if(indexOfx < indexOfComma)
+			{
+				tempFact.deleteCharAt(indexOfx);
+				tempFact.insert(indexOfx, this.askedQuery.argument1);
+			}
+			else
+			{
+				tempFact.deleteCharAt(indexOfx);
+				tempFact.insert(indexOfx, this.askedQuery.argument2);
+			}
+		}
+		return tempFact.toString();
+		
+	}
+	
+	//unifying the fact which has a single argument - replacing the x
+	String unifyVariableWithOneArgument(String fact)
+	{
+		int indexOfx = fact.indexOf('x');
+		StringBuilder tempFact = new StringBuilder(fact);
+		if(indexOfx>0)
+		{	
+			tempFact.deleteCharAt(indexOfx);
+			tempFact.insert(indexOfx, this.askedQuery.argument1);
+		}	
+		return tempFact.toString();
+		
+	
